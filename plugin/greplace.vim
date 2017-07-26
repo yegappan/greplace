@@ -1,8 +1,8 @@
 " File: greplace.vim
 " Script to search and replace pattern across multiple files
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-" Version: 1.0 Beta1
-" Last Modified: March 3, 2007
+" Version: 1.1
+" Last Modified: July 25, 2017
 "
 if exists("loaded_greplace")
     finish
@@ -18,19 +18,11 @@ endif
 let s:cpo_save = &cpo
 set cpo&vim
 
+" Replace buffer name
 if &isfname =~ '['
     let s:gRepl_bufname = '[Global\ Replace]'
 else
     let s:gRepl_bufname = '\[Global\ Replace\]'
-endif
-
-" Character to use to quote patterns
-if !exists("Greplace_Shell_Quote_Char")
-    if has("win32") || has("win16") || has("win95")
-        let Greplace_Shell_Quote_Char = ''
-    else
-        let Greplace_Shell_Quote_Char = "'"
-    endif
 endif
 
 let s:save_qf_list = {}
@@ -43,6 +35,9 @@ endfunction
 
 highlight GReplaceText term=reverse cterm=reverse gui=reverse
 
+" gReplace
+" Get a list of lines changed in the replace buffer and merge the changes
+" back into the files.
 function! s:gReplace()
     if empty(s:save_qf_list)
         return
@@ -65,7 +60,7 @@ function! s:gReplace()
         let text = match_l[3]
 
         let key = fname . ':' . lnum
-        if s:save_qf_list[key].text == text
+        if s:save_qf_list[key].text ==# text
             " This line is not changed
             continue
         endif
@@ -84,13 +79,22 @@ function! s:gReplace()
         return
     endif
 
-    " Make the changes made by the user to the buffers
+    " Merge the changes made by the user to the buffers
     for f in keys(changeset)
         let f_l = changeset[f]
         if !filereadable(f)
             continue
         endif
-        silent! exe 'hide edit ' . f
+
+	" Don't use silent when editing the file as it hides the swap file
+	" exists prompt. To the user, it looks like Vim is hanging.
+        exe 'hide edit ' . f
+
+	" If a swap file is present and the user decided not to edit the file,
+	" then handle the condition here.
+	if bufname('%') == ''
+	    continue
+	endif
 
         let change_buf_all = 0   " Accept all the changes in this buffer
 
@@ -101,13 +105,13 @@ function! s:gReplace()
             let new_ltext = f_l[lnum]
 
             let s_idx =0
-            while cur_ltext[s_idx] == new_ltext[s_idx]
+            while cur_ltext[s_idx] ==# new_ltext[s_idx]
                 let s_idx += 1
             endwhile
 
             let e_idx1 = strlen(cur_ltext) - 1
             let e_idx2 = strlen(new_ltext) - 1
-            while e_idx1 >= 0 && cur_ltext[e_idx1] == new_ltext[e_idx2]
+            while e_idx1 >= 0 && cur_ltext[e_idx1] ==# new_ltext[e_idx2]
                 let e_idx1 -= 1
                 let e_idx2 -= 1
             endwhile
@@ -135,17 +139,17 @@ function! s:gReplace()
                     let ans = 'x'
                     while ans !~? '[ynab]'
                         let ans = nr2char(getchar())
-                        if ans == 'q' || ans == "\<Esc>"      " Quit
+                        if ans ==? 'q' || ans == "\<Esc>"      " Quit
                             return
                         endif
                     endwhile
-                    if ans == 'a'       " Accept all
+                    if ans ==? 'a'       " Accept all
                         let change_all = 1
                     endif
-                    if ans == 'b'       " Accept changes in the current buffer
+                    if ans ==? 'b'       " Accept changes in the current buffer
                         let change_buf_all = 1
                     endif
-                    if ans == 'y'       " Yes
+                    if ans ==? 'y'       " Yes
                         let change_line = 1
                     endif
                 endif
@@ -160,7 +164,56 @@ function! s:gReplace()
     endfor
 endfunction
 
-function! s:gReplace_show_matches()
+" gRepl_Jump_To_File
+" Jump to the file under the cursor and position the cursor on the
+" line with the line number under the cursor
+function! s:gRepl_Jump_To_File()
+    let l = getline('.')
+
+    if l !~ '[^:]\+:\d\+:'
+	return
+    endif
+
+    let match_l = matchlist(l, '\([^:]\+\):\(\d\+\):\(.*\)')
+    if len(match_l) == 0
+	return
+    endif
+
+    let fname = match_l[1]
+    let lnum = match_l[2]
+
+    if !filereadable(fname)
+	return
+    endif
+
+    let found_win = 0
+
+    let wnum = bufwinnr(fname)
+    if wnum != -1
+	exe wnum . 'wincmd w'
+	let found_win = 1
+    else
+	" locate a usable window
+	for wnum in range(1, winnr('$'))
+	    let bnr = winbufnr(wnum)
+	    if getbufvar(bnr, '&buftype') == ''
+		exe wnum . 'wincmd w'
+		let found_win = 1
+		break
+	    endif
+	endfor
+    endif
+
+    if found_win
+	exe 'edit +' . lnum . ' ' . fname
+    else
+	exe 'below new +' . lnum . ' ' . fname
+    endif
+endfunction
+
+" gReplace_show_matches
+" Display the search results in the replace buffer
+function! s:gReplace_show_matches(search_pat)
     let qf = getqflist()
     if empty(qf)
         call s:warn_msg('Error: Quickfix list is empty')
@@ -202,16 +255,37 @@ function! s:gReplace_show_matches()
         %d _
     endif
 
-    call append(0, '#')
-    call append(1, '# Modify the contents of this buffer and then')
-    call append(2, '# use the ":Greplace" command to merge the changes.')
-    call append(3, '#')
-    call append(4, lines)
+    let first_line = 0
+    if a:search_pat != ''
+        call append(0, '# pattern: ' . a:search_pat)
+        let first_line = 1
+    endif
+    call append(first_line, '# Modify the contents of this buffer and ' .
+                \ 'then use the ":Greplace" command')
+    call append(first_line + 1, '# to merge the changes.')
+    call append(first_line + 2, lines)
+    let start_lnum = first_line + 3
 
-    call cursor(5, 1)
+    if has('gui_running') || &t_Co > 2
+        syntax match gReplaceComment /^#.*/
+        syntax match gReplaceFileName
+                    \ /^.\+\ze:\d\+:/ nextgroup=gReplaceSeparator
+        syntax match gReplaceSeparator /:/ nextgroup=gReplaceLineNr
+        syntax match gReplaceLineNr /\d\+/
+
+        highlight default link gReplaceComment Comment
+        highlight default link gReplaceFileName Title
+        highlight default link gReplaceLineNr LineNr
+    endif
+
+    call cursor(start_lnum, 1)
     setlocal buftype=nofile
     setlocal bufhidden=wipe
     setlocal nomodified
+
+    " Map the Enter key to jump to file and line under cursor
+    nnoremap <silent> <buffer> <CR> :call <SID>gRepl_Jump_To_File()<CR>
+    nnoremap <silent> <buffer> <2-LeftMouse> :call <SID>gRepl_Jump_To_File()<CR>
 
     command! -buffer -nargs=0 -bang Greplace call s:gReplace()
 
@@ -227,6 +301,8 @@ function! s:gSearch(type, ...)
 
     " Parse the arguments
     " grep command-line flags are specified using the "-flag" format
+    " (on MS-Windows, the findstr program is used for 'grepprg' and
+    "  the options start with '/')
     " the next argument is assumed to be the pattern
     " and the next arguments are assumed to be filenames or file patterns
     let argcnt = 1
@@ -249,11 +325,10 @@ function! s:gSearch(type, ...)
         if pattern == ''
             return
         endif
-
-        " Quote the supplied pattern
-        let pattern = g:Greplace_Shell_Quote_Char . pattern .
-                    \ g:Greplace_Shell_Quote_Char
     endif
+
+    " Escape the special characters in the supplied pattern
+    let pattern = shellescape(pattern)
 
     if a:type == 'grep'
         if filenames == ''
@@ -294,12 +369,15 @@ function! s:gSearch(type, ...)
     let grep_cmd = 'grep! ' . grep_opt . ' ' . pattern . ' ' . filenames
 
     " Run the grep and get the matches
+    " Don't use silent to suppress the command output, as it is useful
+    " for the user to look at the command output in case of failure.
     exe grep_cmd
 
-    call s:gReplace_show_matches()
+    call s:gReplace_show_matches(pattern)
 endfunction
 
-command! -nargs=0 Gqfopen call s:gReplace_show_matches()
+" User-visible commands for using this plugin
+command! -nargs=0 Gqfopen call s:gReplace_show_matches('')
 command! -nargs=* -complete=file Gsearch call s:gSearch('grep', <f-args>)
 command! -nargs=* Gargsearch call s:gSearch('args', <f-args>)
 command! -nargs=* Gbuffersearch call s:gSearch('buffer', <f-args>)

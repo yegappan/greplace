@@ -2,7 +2,7 @@
 
 Author: Yegappan Lakshmanan  (yegappan AT yahoo DOT com)
 For Vim version 7.0 and above
-Last change: 2007 March 2
+Last change: 2017 July 26
 
 Overview~
 
@@ -10,7 +10,8 @@ The Global Replace plugin allows you to search and replace a pattern across
 multiple files. The lines containing a specified pattern in multiple files are
 displayed in a buffer. You can edit the lines in this buffer and make the
 desired modifications to them. The plugin can then incorporate these changes
-back into the corresponding files interactively.
+back into the corresponding files interactively. This plugin allows you to
+make multiple modifications across several files in a single pass.
 
 ==============================================================================
 
@@ -52,6 +53,7 @@ One example sequence of commands for using this plugin is:
     <The above command will search for mypattern in *.java and *.c
     files in the current directory and display the matching lines
     in a buffer.>
+
     <You can now use the Vim editing commands to modify the buffer>
 
     :Greplace
@@ -154,7 +156,8 @@ changes without any prompts for confirmation.
 The modified files will not be automatically saved. You can save all of them
 using the ":wall" command or you can individually inspect the buffers for the
 changes and then save the buffer using the ":w" command. You can undo the
-changes individually by using the Vim "u" command.
+changes individually by using the Vim "u" command. To save a file only if it
+is modified, you can use the ":update" command.
 
 ==============================================================================
 
