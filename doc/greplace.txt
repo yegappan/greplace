@@ -1,23 +1,35 @@
-*greplace.txt*	Plugin for replacing pattern across multiple files
+*greplace.txt*	Plugin for replacing text across multiple files
 
 Author: Yegappan Lakshmanan  (yegappan AT yahoo DOT com)
 For Vim version 7.0 and above
-Last change: 2017 July 26
+Last change: 2018 March 2
 
-Overview~
-
-The Global Replace plugin allows you to search and replace a pattern across
-multiple files. The lines containing a specified pattern in multiple files are
-displayed in a buffer. You can edit the lines in this buffer and make the
-desired modifications to them. The plugin can then incorporate these changes
-back into the corresponding files interactively. This plugin allows you to
-make multiple modifications across several files in a single pass.
+1. Overview					|greplace-overview|
+2. Installation					|greplace-installation|
+3. Usage					|greplace-usage|
+4. License					|greplace-license|
 
 ==============================================================================
+						*greplace-overview*
+1. Overview~
+The Global Replace plugin allows you to search and replace a pattern across
+multiple files and buffers.
 
-Installation~
+To search and replace a pattern in multiple files, you invoke a command
+supplied by this plugin with the search pattern. The plugin displays the lines
+containing the specified pattern in one or more specified files in a Vim
+buffer. You can use the Vim editing commands to make modifications to this
+buffer. To incorporate the changes back to the corresponding files, you now
+invoke a plugin command. This plugin allows you to make multiple modifications
+across several files in a single pass.
 
-1. Download the greplace.vim file and unzip the files into the $HOME/.vim
+This plugin will run only on Vim 7.0 and above.
+
+==============================================================================
+						*greplace-installation*
+2. Installation~
+
+1. Download the greplace.zip file and unzip the files into the $HOME/.vim
    or the $HOME/vimfiles or the $VIM/vimfiles directory.  After this step, you
    should have the following two files (the directory structure should be
    preserved):
@@ -34,6 +46,8 @@ To uninstall the global replace plugin, remove the plugin/greplace.vim and
 doc/greplace.txt files from the $HOME/.vim or $HOME/vimfiles directory.
 
 ==============================================================================
+						*greplace-usage*
+3. Usage~
 
 The following commands are provided by this plugin:
 
@@ -60,7 +74,7 @@ One example sequence of commands for using this plugin is:
     <The above command will load each of the buffer which needs to be changed
     and ask you to confirm whether to make the change or not>
     
-    :wall
+    :bufdo update
     <To save all the modified buffers>
 
 In the above sequence, instead of ":Gsearch", you can use ":Gbuffersearch" or
@@ -89,8 +103,9 @@ The next argument specifies the pattern. You cannot use space characters in
 the pattern. To specify space characters in the pattern, don't specify the
 pattern in the command-line. See below for more information.
 
-The last set of arguments specify the filenames. You can use wildcards in the
-filenames. You can also complete directory and file names by pressing <Tab>.
+The last set of arguments specify the filenames. You can use wild cards (like
+'*') in the filenames. You can also complete directory and file names by
+pressing <Tab>.
 
 If the pattern or the filenames is not supplied as argument to the ":Gsearch"
 command, then you will be prompted to enter the pattern and the filenames. The
@@ -156,8 +171,18 @@ changes without any prompts for confirmation.
 The modified files will not be automatically saved. You can save all of them
 using the ":wall" command or you can individually inspect the buffers for the
 changes and then save the buffer using the ":w" command. You can undo the
-changes individually by using the Vim "u" command. To save a file only if it
-is modified, you can use the ":update" command.
+changes individually by using the Vim "u" command. To save only files that are
+modified, you can use the ":bufdo update" command.
+
+==============================================================================
+						*greplace-license*
+4. License~
+Permission is hereby granted to use and distribute the greplace plugin, with
+or without modifications, provided that this copyright notice is copied with
+it.  Like anything else that's free, greplace.vim is provided *as is* and
+comes with no warranty of any kind, either expressed or implied. In no event
+will the copyright holder be liable for any damages resulting from the use of
+this software.
 
 ==============================================================================
 

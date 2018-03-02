@@ -1,8 +1,17 @@
 " File: greplace.vim
 " Script to search and replace pattern across multiple files
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-" Version: 1.1
-" Last Modified: July 25, 2017
+" Version: 1.2
+" Last Modified: March 2, 2018
+"
+" Copyright: Copyright (C) 2007-2018 Yegappan Lakshmanan
+"            Permission is hereby granted to use and distribute this code,
+"            with or without modifications, provided that this copyright
+"            notice is copied with it. Like anything else that's free,
+"            greplace.vim is provided *as is* and comes with no warranty of
+"            any kind, either expressed or implied. In no event will the
+"            copyright holder be liable for any damamges resulting from the
+"            use of this software.
 "
 if exists("loaded_greplace")
     finish
@@ -35,15 +44,19 @@ endfunction
 
 highlight GReplaceText term=reverse cterm=reverse gui=reverse
 
-" gReplace
+" gReplace()
 " Get a list of lines changed in the replace buffer and merge the changes
 " back into the files.
-function! s:gReplace()
+function! s:gReplace(bang)
     if empty(s:save_qf_list)
         return
     endif
 
-    let change_all = v:cmdbang
+    if a:bang == "!"
+	let change_all = 1
+    else
+	let change_all = 0
+    endif
 
     let changeset = {}
 
@@ -60,6 +73,12 @@ function! s:gReplace()
         let text = match_l[3]
 
         let key = fname . ':' . lnum
+
+	if !has_key(s:save_qf_list, key)
+	    " User might have modified the filename or line number
+	    continue
+	endif
+
         if s:save_qf_list[key].text ==# text
             " This line is not changed
             continue
@@ -74,7 +93,7 @@ function! s:gReplace()
     endfor
 
     if empty(changeset)
-        " The replace buffer is not changed by the user
+        " The replace buffer is not modified by the user
         call s:warn_msg('Error: No changes in the replace buffer')
         return
     endif
@@ -257,7 +276,7 @@ function! s:gReplace_show_matches(search_pat)
 
     let first_line = 0
     if a:search_pat != ''
-        call append(0, '# pattern: ' . a:search_pat)
+        call append(0, '# Search pattern: ' . a:search_pat)
         let first_line = 1
     endif
     call append(first_line, '# Modify the contents of this buffer and ' .
@@ -287,7 +306,7 @@ function! s:gReplace_show_matches(search_pat)
     nnoremap <silent> <buffer> <CR> :call <SID>gRepl_Jump_To_File()<CR>
     nnoremap <silent> <buffer> <2-LeftMouse> :call <SID>gRepl_Jump_To_File()<CR>
 
-    command! -buffer -nargs=0 -bang Greplace call s:gReplace()
+    command! -buffer -nargs=0 -bang Greplace call s:gReplace("<bang>")
 
     let s:save_qf_list = new_qf
 endfunction
