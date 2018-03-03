@@ -25,6 +25,9 @@ across several files in a single pass.
 
 This plugin will run only on Vim 7.0 and above.
 
+The github repository for this plugin is at
+https://github.com/yegappan/greplace
+
 ==============================================================================
 2. Installation					*greplace-installation*
 
@@ -97,7 +100,7 @@ Vim internal grep, set the "grepprg" option to "internal".
 
 The syntax of the ":Gsearch" command is:
 >
-    :Gsearch [<grep-option(s)>] [[<pattern>] [<filename(s)>]]
+	:Gsearch [<grep-option(s)>] [[<pattern>] [<filename(s)>]]
 <
 The arguments to the ":Gsearch" command are optional.
 
@@ -107,8 +110,10 @@ MS-Windows). For example, to ignore case, you can use "-i" for the Unix
 grep program.
 
 The next argument specifies the pattern. You cannot use space characters in
-the pattern. To specify space characters in the pattern, don't specify the
-pattern in the command-line. See below for more information.
+the pattern. To specify space or other special characters in the pattern,
+don't specify the pattern in the command-line. You will then be prompted to
+enter the pattern where you can enter the special characters. See below for
+more information.
 
 The last set of arguments specify the filenames. You can use wild cards (like
 '*') in the filenames. You can also complete directory and file names by
@@ -117,14 +122,14 @@ pressing <Tab>.
 If the pattern or the filenames is not supplied as argument to the ":Gsearch"
 command, then you will be prompted to enter the pattern and the filenames. The
 default value for the search pattern is the keyword under the cursor. In the
-prompt for entering the pattern, you can enter a pattern with space
-characters. In the prompt for entering the filenames, you can press <Tab> to
-complete the directory and file names.
+prompt for entering the pattern, you can enter a pattern with space and other
+special characters. In the prompt for entering the filenames, you can press
+<Tab> to complete the directory and file names.
 
 To search for a pattern in the files in the Vim buffer list, use the
 ":Gbuffersearch" command. The syntax of this command is:
 >
-    :Gbuffersearch [<grep-option(s)>]
+	:Gbuffersearch [<grep-option(s)>]
 <
 This command is similar to the ":Gsearch" command.  This command searches for
 the specified pattern in all the files in the buffer list. You cannot specify
@@ -133,7 +138,7 @@ filenames to this command.
 To search for a pattern in the files in the Vim argument list, use the
 ":Gargsearch" command. The syntax of this command is:
 >
-    :Gargsearch [<grep-option(s)>]
+	:Gargsearch [<grep-option(s)>]
 <
 This command is similar to the ":Gsearch" command.  This command will search
 for the specified pattern in all the files in the argument list. You cannot

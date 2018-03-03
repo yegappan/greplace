@@ -223,6 +223,8 @@ endfunction
 " greplace#show_matches
 " Display the search results in the replace buffer
 function! greplace#show_matches(search_pat)
+    let s:save_qf_list = {}
+
     let qf = getqflist()
     if empty(qf)
         call s:warn_msg('Error: Quickfix list is empty')
@@ -334,10 +336,10 @@ function! greplace#search(type, ...)
         if pattern == ''
             return
         endif
-    endif
 
-    " Escape the special characters in the supplied pattern
-    let pattern = shellescape(pattern)
+	" Escape the special characters in the supplied pattern
+	let pattern = shellescape(pattern)
+    endif
 
     if a:type == 'grep'
         if filenames == ''
