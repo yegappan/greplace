@@ -1,8 +1,8 @@
 " File: greplace.vim
 " Script to search and replace pattern across multiple files
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-" Version: 1.2
-" Last Modified: March 2, 2018
+" Version: 2.0
+" Last Modified: March 3, 2018
 "
 " Copyright: Copyright (C) 2007-2018 Yegappan Lakshmanan
 "            Permission is hereby granted to use and distribute this code,
@@ -10,7 +10,7 @@
 "            notice is copied with it. Like anything else that's free,
 "            greplace.vim is provided *as is* and comes with no warranty of
 "            any kind, either expressed or implied. In no event will the
-"            copyright holder be liable for any damamges resulting from the
+"            copyright holder be liable for any damages resulting from the
 "            use of this software.
 
 " Line continuation used here

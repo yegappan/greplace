@@ -2,7 +2,7 @@
 
 Author: Yegappan Lakshmanan  (yegappan AT yahoo DOT com)
 For Vim version 7.0 and above
-Last change: 2018 March 2
+Last change: 2018 March 3
 
 1. Overview					|greplace-overview|
 2. Installation					|greplace-installation|
@@ -10,8 +10,8 @@ Last change: 2018 March 2
 4. License					|greplace-license|
 
 ==============================================================================
-						*greplace-overview*
-1. Overview~
+1. Overview					*greplace-overview*
+
 The Global Replace plugin allows you to search and replace a pattern across
 multiple files and buffers.
 
@@ -26,28 +26,35 @@ across several files in a single pass.
 This plugin will run only on Vim 7.0 and above.
 
 ==============================================================================
-						*greplace-installation*
-2. Installation~
+2. Installation					*greplace-installation*
 
-1. Download the greplace.zip file and unzip the files into the $HOME/.vim
-   or the $HOME/vimfiles or the $VIM/vimfiles directory.  After this step, you
-   should have the following two files (the directory structure should be
-   preserved):
+You can use any one of the Vim plugin managers (dein.vim, pathogen, vam,
+vim-plug, volt, Vundle, etc.) to install and manage this plugin.
 
-	plugin/greplace.vim - main global replace plugin file
+Alternatively, you can also manually download and install the plugin
+using the following steps.
+
+1. Download the greplace.zip file from github or from the vim.sourceforge.io
+   site.
+2. Unzip the files into the $HOME/.vim or the $HOME/vimfiles or the
+   $VIM/vimfiles directory.  After this step, you should have the following
+   files (the directory structure should be preserved):
+
+	plugin/greplace.vim - global replace command definitions
+	autoload/greplace.vim - autoloaded global replace plugin file
 	doc/greplace.txt    - documentation (help) file
 
-2. Change to the $HOME/.vim/doc or $HOME/vimfiles/doc or $VIM/vimfiles/doc
+3. Change to the $HOME/.vim/doc or $HOME/vimfiles/doc or $VIM/vimfiles/doc
    directory, start Vim and run the ":helptags ." command to process the
    help file. Without this step, you cannot jump to the help topics.
-3. Restart Vim.
+4. Restart Vim.
 
-To uninstall the global replace plugin, remove the plugin/greplace.vim and
-doc/greplace.txt files from the $HOME/.vim or $HOME/vimfiles directory.
+To uninstall the global replace plugin, remove the plugin/greplace.vim,
+autoload/greplace.vim and doc/greplace.txt files from the $HOME/.vim or
+$HOME/vimfiles directory.
 
 ==============================================================================
-						*greplace-usage*
-3. Usage~
+3. Usage					*greplace-usage*
 
 The following commands are provided by this plugin:
 
@@ -175,8 +182,8 @@ changes individually by using the Vim "u" command. To save only files that are
 modified, you can use the ":bufdo update" command.
 
 ==============================================================================
-						*greplace-license*
-4. License~
+4. License					*greplace-license*
+
 Permission is hereby granted to use and distribute the greplace plugin, with
 or without modifications, provided that this copyright notice is copied with
 it.  Like anything else that's free, greplace.vim is provided *as is* and
