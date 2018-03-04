@@ -2,7 +2,7 @@
 " Script to search and replace pattern across multiple files
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
 " Version: 2.0
-" Last Modified: March 3, 2018
+" Last Modified: March 4, 2018
 "
 " Copyright: Copyright (C) 2007-2018 Yegappan Lakshmanan
 "            Permission is hereby granted to use and distribute this code,
@@ -34,20 +34,9 @@ endfunction
 
 highlight GReplaceText term=reverse cterm=reverse gui=reverse
 
-" gReplace()
-" Get a list of lines changed in the replace buffer and merge the changes
-" back into the files.
-function! s:gReplace(bang)
-    if empty(s:save_qf_list)
-        return
-    endif
-
-    if a:bang == "!"
-	let change_all = 1
-    else
-	let change_all = 0
-    endif
-
+" get_changeset()
+" Parse the lines in the Replace buffer and get a List of changed lines
+function! s:get_changeset()
     let changeset = {}
 
     " Parse the replace buffer contents and get a List of changed lines
@@ -64,6 +53,7 @@ function! s:gReplace(bang)
 
         let key = fname . ':' . lnum
 
+	" Check whether the file and line number exists in the original list
 	if !has_key(s:save_qf_list, key)
 	    " User might have modified the filename or line number
 	    continue
@@ -82,15 +72,65 @@ function! s:gReplace(bang)
         let changeset[fname][lnum] = text
     endfor
 
-    if empty(changeset)
-        " The replace buffer is not modified by the user
-        call s:warn_msg('Error: No changes in the replace buffer')
-        return
+    return changeset
+endfunction
+
+" diff_line()
+" Compute the diff between the old and new lines
+" Returns the start index of the diff in the old line and the end index of the
+" diff in the old and new lines as a list
+function! s:diff_line(old_line, new_line)
+    " Find the index of the leftmost character that is different
+    let s_idx = 0
+    while a:old_line[s_idx] ==# a:new_line[s_idx]
+	let s_idx += 1
+    endwhile
+
+    " Find the index of the rightmost character that is different
+    let e_idx1 = strlen(a:old_line) - 1
+    let e_idx2 = strlen(a:new_line) - 1
+    while e_idx1 >= 0 && e_idx1 > s_idx &&
+		\ a:old_line[e_idx1] ==# a:new_line[e_idx2]
+	let e_idx1 -= 1
+	let e_idx2 -= 1
+    endwhile
+
+    return [s_idx, e_idx1, e_idx2]
+endfunction
+
+" highlight_diff()
+" Highlight the characters between the start and end indexes in the specified
+" line.
+function! s:highlight_diff(lnum, s_idx, e_idx)
+    let scol = a:s_idx
+    let ecol = a:e_idx
+
+    " We are going to highlight characters greater than s_idx and less
+    " than e_idx (between s_idx + 1 and e_idx - 1). Highlighting
+    " uses columns which start at 1 while string index starts at 0. So
+    " increment e_idx by 2.
+    let ecol += 2
+
+    " If there is nothing to highlight, then highlight the last character
+    if (scol + 1) == ecol
+	let ecol += 1
+    elseif scol == ecol
+	let ecol += 2
     endif
 
+    let hl_pat = '/\%'.a:lnum.'l\%>'.scol.'c.*\%<'.ecol.'c/'
+    exe '2match GReplaceText ' . hl_pat
+    redraw!
+endfunction
+
+" process_change_set()
+" Merge the changes made by the user to the corresponding files/buffers
+function! s:process_changeset(changeset, bang)
+    let change_all = (a:bang == '!')
+
     " Merge the changes made by the user to the buffers
-    for f in keys(changeset)
-        let f_l = changeset[f]
+    for f in keys(a:changeset)
+        let f_l = a:changeset[f]
         if !filereadable(f)
             continue
         endif
@@ -110,38 +150,20 @@ function! s:gReplace(bang)
         for lnum in keys(f_l)
             exe lnum
 
-            let cur_ltext = getline(lnum)
-            let new_ltext = f_l[lnum]
+            let prev_line = getline(lnum)
+            let new_line = f_l[lnum]
 
-            let s_idx = 0
-            while cur_ltext[s_idx] ==# new_ltext[s_idx]
-                let s_idx += 1
-            endwhile
+	    " Compute the diff between the old and new lines
+	    let [s_idx, e_idx1, e_idx2] = s:diff_line(prev_line, new_line)
 
-            let e_idx1 = strlen(cur_ltext) - 1
-            let e_idx2 = strlen(new_ltext) - 1
-            while e_idx1 >= 0 && cur_ltext[e_idx1] ==# new_ltext[e_idx2]
-                let e_idx1 -= 1
-                let e_idx2 -= 1
-            endwhile
-
-            let e_idx1 += 2
-
-            if (s_idx + 1) == e_idx1 
-                " If there is nothing to highlight, then highlight the
-                " last character
-                let e_idx1 += 1
-            endif
-
-            let hl_pat = '/\%'.lnum.'l\%>'.s_idx.'c.*\%<'.e_idx1.'c/'
-            exe '2match GReplaceText ' . hl_pat
-            redraw!
+	    " Highlight the diff
+	    call s:highlight_diff(lnum, s_idx, e_idx1)
 
             try
                 let change_line = 0
 
                 if !change_all && !change_buf_all
-                    let new_text_frag = strpart(new_ltext, s_idx,
+                    let new_text_frag = strpart(new_line, s_idx,
                                 \ e_idx2 - s_idx + 1)
 
                     echo "Replace with '" . new_text_frag . "' (y/n/a/b/q)?"
@@ -171,6 +193,25 @@ function! s:gReplace(bang)
             endtry
         endfor
     endfor
+endfunction
+
+" gReplace()
+" Get a list of lines changed in the replace buffer and merge the changes
+" back into the files.
+function! s:gReplace(bang)
+    if empty(s:save_qf_list)
+        return
+    endif
+
+    let changeset = s:get_changeset()
+    if empty(changeset)
+        " The replace buffer is not modified by the user
+        call s:warn_msg('Error: No changes in the replace buffer')
+        return
+    endif
+
+    " Merge the changes made by the user to the buffers
+    call s:process_changeset(changeset, a:bang)
 endfunction
 
 " gRepl_Jump_To_File
