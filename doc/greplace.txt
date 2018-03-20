@@ -2,7 +2,7 @@
 
 Author: Yegappan Lakshmanan  (yegappan AT yahoo DOT com)
 For Vim version 7.0 and above
-Last change: March 5, 2018
+Last change: March 20, 2018
 
 ==============================================================================
 						*greplace-license*
@@ -47,6 +47,9 @@ buffer. To incorporate the changes back to the corresponding files, you now
 invoke a plugin command. This plugin allows you to make multiple modifications
 across several files in a single pass.
 
+You can also use this plugin with other plugins that populate the quickfix
+list with search results.
+
 This plugin will run only on Vim 7.0 and above.
 
 The github repository for this plugin is at
@@ -61,11 +64,10 @@ vim-plug, volt, Vundle, etc.) to install and manage this plugin.
 Alternatively, you can also manually download and install the plugin
 using the following steps.
 
-1. Download the greplace.zip file from github or from the vim.sourceforge.io
-   site.
-2. Unzip the files into the $HOME/.vim or the $HOME/vimfiles or the
-   $VIM/vimfiles directory.  After this step, you should have the following
-   files (the directory structure should be preserved):
+1. Download the greplace.zip file from the vim.sourceforge.io site.
+2. Unzip the files into the $HOME/.vim or the $HOME/vimfiles directory.  After
+   this step, you should have the following files (the directory structure
+   should be preserved):
 
 	plugin/greplace.vim - global replace command definitions
 	autoload/greplace.vim - autoloaded global replace plugin file
@@ -76,7 +78,8 @@ using the following steps.
    help file. Without this step, you cannot jump to the help topics.
 4. Restart Vim.
 
-To uninstall the global replace plugin, remove the plugin/greplace.vim,
+To uninstall the global replace plugin, either use the uninstall command
+provided by the plugin manager or manually remove the plugin/greplace.vim,
 autoload/greplace.vim and doc/greplace.txt files from the $HOME/.vim or
 $HOME/vimfiles directory.
 
@@ -85,35 +88,53 @@ $HOME/vimfiles directory.
 
 The following commands are provided by this plugin:
 
-:Gsearch         Search for a given pattern in the specified group of
-                 files and display the matches in the replace buffer.
-:Gbuffersearch   Search for a given pattern in all the buffers
-                 in the Vim buffer list.
-:Gargsearch      Search for a given pattern in all the files in the
-                 Vim argument list.
-:Gqfopen         Use the results from the quickfix list.
-:Greplace        Incorporate the modifications from the replace buffer
-                 into the corresponding files.
+:Gsearch	Search for a given pattern in the specified group of
+		files and display the matches in the replace buffer.
+:Gbuffersearch	Search for a given pattern in all the buffers
+		in the Vim buffer list.
+:Gargsearch	Search for a given pattern in all the files in the
+		Vim argument list.
+:Gqfopen	Use the results from the quickfix list populated by some
+		other plugin.
+:Greplace	Incorporate the modifications from the replace buffer
+		into the corresponding files.
 
 One example sequence of commands for using this plugin is:
 
     :Gsearch mypattern *.java *.c
-    <The above command will search for mypattern in *.java and *.c
-    files in the current directory and display the matching lines
-    in a buffer.>
+	The above command will search for mypattern in *.java and *.c files in
+	the current directory and display the matching lines in a buffer.
 
-    <You can now use the Vim editing commands to modify the buffer>
+	You can now use the Vim editing commands to modify the buffer.
 
     :Greplace
-    <The above command will load each of the buffer which needs to be changed
-    and ask you to confirm whether to make the change or not>
+	The above command will load each of the buffer which needs to be
+	changed and ask you to confirm whether to make the change or not.
 
     :bufdo update
-    <To save all the modified buffers>
+	To save all the modified buffers.
 
 In the above sequence, instead of ":Gsearch", you can use ":Gbuffersearch" or
 ":Gargsearch" commands to search for a pattern in the files in the Vim buffer
 list or the argument list.
+
+Another example sequence of commands for using this plugin with another plugin
+that populates the quickfix list with search results is:
+
+    :Ack mypattern
+	Invoke the Ack command provided by another plugin to search for
+	mypattern and populate the quickfix list.
+
+    :Gqfopen
+	Open the search results from the quickfix list in a replace buffer.
+	You can now use the Vim editing commands to modify the buffer.
+
+    :Greplace
+	The above command will load each of the buffer which needs to be
+	changed and ask you to confirm whether to make the change or not.
+
+    :bufdo update
+	To save all the modified buffers.
 
 The ":Gsearch" command uses the Vim ":grep" command to search for the pattern
 in the specified files. The ":grep" command uses the program specified by the
