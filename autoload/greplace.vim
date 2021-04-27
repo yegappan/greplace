@@ -397,7 +397,7 @@ function! greplace#search(type, ...)
 
     if a:type == 'grep'
         if filenames == ''
-            let filenames = input('Search in files: ', '*', 'file')
+            let filenames = input('Search in files: ', '', 'file')
         endif
     elseif a:type == 'args'
         " Search in all the filenames in the argument list
@@ -424,7 +424,7 @@ function! greplace#search(type, ...)
         endfor
     endif
 
-    if filenames == ''
+    if a:type != 'grep' && filenames == ''
         call s:warn_msg('Error: No valid file names')
         return
     endif
